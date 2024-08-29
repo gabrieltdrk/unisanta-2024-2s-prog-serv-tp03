@@ -1,0 +1,103 @@
+using Biblioteca.Data;
+using Biblioteca.Models;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Biblioteca.Controllers
+{
+    [ApiController]
+    public class HomeController : ControllerBase
+    {
+        // RETORNAR TODOS OS LIVROS
+        [HttpGet("/livros")]
+        public IActionResult GetAllBooks([FromServices] AppDbContext context)
+        {
+            var todosLivros = context.Livros.ToList();
+            return Ok(todosLivros);
+        }
+
+        // RETORNAR UM LIVRO PELO ID
+        [HttpGet("/livro/{id:int}")]
+        public IActionResult GetBookById
+        (
+            [FromServices] AppDbContext context,
+            [FromRoute] int id
+        )
+        {
+            var buscarLivro = context.Livros.Find(id);
+            if (buscarLivro is null) return NotFound();
+
+            return Ok(buscarLivro);
+        }
+
+        // RETORNAR LIVROS COM BASE NA EDITORA
+        [HttpGet("/livros/editora={editora:string}/")]
+        public IActionResult GetBookByEditor
+        (
+            [FromServices] AppDbContext context,
+            [FromRoute] string editora
+        )
+        {
+            if (!editora.Contains(context.Livros.FirstOrDefault().Editora))
+            {
+                return BadRequest("Livro inválido.");
+            }
+
+            List<Livro> livrosPorEditora = context.Livros
+                .Where(x => x.Editora == editora)
+                .ToList();
+
+            return Ok(livrosPorEditora);
+        }
+
+        // CRIAR UM NOVO LIVRO
+        [HttpPost("/livro")]
+        public IActionResult Post
+        (
+            [FromServices] AppDbContext context,
+            [FromBody] Livro novoLivro
+        )
+        {
+            context.Livros.Add(novoLivro);
+            context.SaveChanges();
+            return Created($"/{novoLivro.Id}", novoLivro);
+        }
+
+        // ATUALIZAR UM LIVRO PELO ID
+        [HttpPut("/livro/{id:int}")]
+        public IActionResult UpdateBookById
+        (
+            [FromServices] AppDbContext context,
+            [FromRoute] int id,
+            [FromBody] Livro novoLivro
+        )
+        {
+            var livroAtual = context.Livros.Find(id);
+            if (livroAtual is null) return NotFound();
+
+            livroAtual.Titulo = novoLivro.Titulo;
+            livroAtual.Editora = novoLivro.Editora;
+            livroAtual.AnoPublicacao = novoLivro.AnoPublicacao;
+            livroAtual.Autor = novoLivro.Autor;
+            livroAtual.QtdEstoque = novoLivro.QtdEstoque;
+
+            context.SaveChanges();
+            return Ok($"O livro {livroAtual.Titulo} foi atualizado!");
+        }
+
+        // DELETAR UM LIVRO PELO ID
+        [HttpDelete("/livro/{id:int}")]
+        public IActionResult DeleteBookById
+        (
+            [FromServices] AppDbContext context,
+            [FromRoute] int id
+        )
+        {
+            var excluirLivro = context.Livros.Find(id);
+            if (excluirLivro is null) return NotFound();
+
+            context.Livros.Remove(excluirLivro);
+            context.SaveChanges();
+            return Ok($"O livro {excluirLivro.Titulo} foi excluído!");
+        }
+    }
+}
