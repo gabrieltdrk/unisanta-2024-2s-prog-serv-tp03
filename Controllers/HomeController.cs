@@ -30,20 +30,19 @@ namespace Biblioteca.Controllers
         }
 
         // RETORNAR LIVROS COM BASE NA EDITORA
-        [HttpGet("/livros/editora/{editora}")]
+        [HttpGet("/livros/editora/{nomeEditora}")]
         public IActionResult GetBookByEditor
         (
             [FromServices] AppDbContext context,
-            [FromRoute] string editora
+            [FromRoute] string nomeEditora
         )
         {
-            if (!editora.Contains(context.Livros.FirstOrDefault().Editora))
-            {
-                return BadRequest("Livro inválido.");
-            }
+            bool editoraExists = context.Livros.Any(l => l.Editora == nomeEditora);
+
+            if (!editoraExists) return NotFound("Editora não encontrada.");
 
             List<Livro> livrosPorEditora = context.Livros
-                .Where(x => x.Editora == editora)
+                .Where(x => x.Editora == nomeEditora)
                 .ToList();
 
             return Ok(livrosPorEditora);
@@ -112,7 +111,7 @@ namespace Biblioteca.Controllers
         {
             var livroAtual = context.Livros.Find(id);
             if (livroAtual is null) return NotFound("Este livro não foi encontrado");
-            if (livroAtual.QtdEstoque < qtd) return BadRequest($"A quantidade informada não pode ser maior que a quantidade em estoque.");
+            if (livroAtual.QtdEstoque < qtd) return BadRequest($"A quantidade informada não pode ser maior que a quantidade em estoque. O estoque atual é {livroAtual.QtdEstoque}.");
 
             livroAtual.QtdEstoque -= qtd;
             context.SaveChanges();
