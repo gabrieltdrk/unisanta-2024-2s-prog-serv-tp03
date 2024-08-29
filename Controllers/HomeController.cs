@@ -84,6 +84,41 @@ namespace Biblioteca.Controllers
             return Ok($"O livro {livroAtual.Titulo} foi atualizado!");
         }
 
+        // ACRESCENTAR ESTOQUE
+        [HttpPut("/livro/{id:int}/adicionar-estoque/{qtd:int}")]
+        public IActionResult IncreaseStockBookById
+        (
+            [FromServices] AppDbContext context,
+            [FromRoute] int id,
+            [FromRoute] int qtd
+        )
+        {
+            var livroAtual = context.Livros.Find(id);
+            if (livroAtual is null) return NotFound("Este livro não foi encontrado");
+            livroAtual.QtdEstoque += qtd;
+
+            context.SaveChanges();
+            return Ok($"O estoque do livro {livroAtual.Titulo} aumentou para {livroAtual.QtdEstoque}!");
+        }
+
+        // REMOVER ESTOQUE
+        [HttpPut("/livro/{id:int}/remover-estoque/{qtd:int}")]
+        public IActionResult DecreaseStockBookById
+        (
+            [FromServices] AppDbContext context,
+            [FromRoute] int id,
+            [FromRoute] int qtd
+        )
+        {
+            var livroAtual = context.Livros.Find(id);
+            if (livroAtual is null) return NotFound("Este livro não foi encontrado");
+            if (livroAtual.QtdEstoque <= qtd) return BadRequest($"A quantidade em estoque do livro {livroAtual.QtdEstoque} não pode ser menor que a quantidade informada: {qtd}");
+
+            context.SaveChanges();
+            return Ok($"O estoque do livro {livroAtual.Titulo} diminuiu para {livroAtual.QtdEstoque}!");
+        }
+
+
         // DELETAR UM LIVRO PELO ID
         [HttpDelete("/livro/{id:int}")]
         public IActionResult DeleteBookById
