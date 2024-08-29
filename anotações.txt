@@ -1,0 +1,8 @@
+// INSTALA
+dotnet tool install --global dotnet-ef
+
+// ADICIONA
+dotnet ef migrations add database
+
+// SOBE A MIGRATION
+dotnet ef database update

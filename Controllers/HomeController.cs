@@ -30,7 +30,7 @@ namespace Biblioteca.Controllers
         }
 
         // RETORNAR LIVROS COM BASE NA EDITORA
-        [HttpGet("/livros/editora={editora:string}/")]
+        [HttpGet("/livros/editora/{editora}")]
         public IActionResult GetBookByEditor
         (
             [FromServices] AppDbContext context,
@@ -59,7 +59,7 @@ namespace Biblioteca.Controllers
         {
             context.Livros.Add(novoLivro);
             context.SaveChanges();
-            return Created($"/{novoLivro.Id}", novoLivro);
+            return Created($"/livro/{novoLivro.Id}", novoLivro);
         }
 
         // ATUALIZAR UM LIVRO PELO ID
@@ -112,8 +112,9 @@ namespace Biblioteca.Controllers
         {
             var livroAtual = context.Livros.Find(id);
             if (livroAtual is null) return NotFound("Este livro não foi encontrado");
-            if (livroAtual.QtdEstoque <= qtd) return BadRequest($"A quantidade em estoque do livro {livroAtual.QtdEstoque} não pode ser menor que a quantidade informada: {qtd}");
+            if (livroAtual.QtdEstoque < qtd) return BadRequest($"A quantidade informada não pode ser maior que a quantidade em estoque.");
 
+            livroAtual.QtdEstoque -= qtd;
             context.SaveChanges();
             return Ok($"O estoque do livro {livroAtual.Titulo} diminuiu para {livroAtual.QtdEstoque}!");
         }
